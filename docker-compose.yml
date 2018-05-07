@@ -1,6 +1,6 @@
 version: "3.6"
 services:
- rabbitmq-exporter:
+  rabbitmq-exporter:
     image: kbudde/rabbitmq-exporter
     ports:
      - 9093:9093
@@ -11,7 +11,7 @@ services:
      - RABBIT_URL=http://192.168.66.186:15672
      - RABBIT_USER=**
      - RABBIT_PASSWORD=******                                                                                                                                         
- redis-exporter:
+  redis-exporter:
     image: oliver006/redis_exporter
     ports:
      - 9121:9121
@@ -29,7 +29,7 @@ services:
       - portainer-data:/data
     networks:
       - graf
- grafana:
+  grafana:
     image: grafana/grafana:4.5.2
     ports:
      - 3000:3000
@@ -42,7 +42,7 @@ services:
       - GF_INSTALL_PLUGINS=grafana-clock-panel,jdbranham-diagram-panel
     volumes:
       - /grafana/:/var/lib/grafana
- prometheus:
+  prometheus:
     image: prom/prometheus:v2.2.0-rc.0
     ports:
      - 9090:9090
