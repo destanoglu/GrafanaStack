@@ -1,68 +1,55 @@
 version: "3.6"
 services:
+ rabbitmq-exporter:
+    image: kbudde/rabbitmq-exporter
+    ports:
+     - 9093:9093
+    networks:
+     - graf
+    environment:
+     - PUBLISH_PORT=9093
+     - RABBIT_URL=http://192.168.66.186:15672
+     - RABBIT_USER=**
+     - RABBIT_PASSWORD=******                                                                                                                                         
+ redis-exporter:
+    image: oliver006/redis_exporter
+    ports:
+     - 9121:9121
+    networks:
+     - graf
+    environment:
+     - REDIS_ADDR=192.168.66.61:6379
+     - REDIS_PASSWORD=********
   portainer:
     image: portainer/portainer
     ports:
-      - 4000:9000
+      - 4900:9000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer-data:/data
     networks:
-      - relk
-    deploy:
-      placement:
-        constraints: [node.role == manager]
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
+      - graf
+ grafana:
+    image: grafana/grafana:4.5.2
+    ports:
+     - 3000:3000
+    links:
+     - prometheus
+    networks:
+     - graf
     environment:
-      - cluster.name=elasticsearch
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-      - discovery.zen.ping.unicast.hosts=elasticsearch
-      #- bootstrap.memory_lock=true
-    networks:
-      - relk
+      - GF_SERVER_ROOT_URL=http://192.168.44.225
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,jdbranham-diagram-panel
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
-    deploy:
-      endpoint_mode: dnsrr
-      resources:
-        limits:
-          memory: 4G
-      mode: global
-  kibana:
-    image: docker.elastic.co/kibana/kibana-oss:6.2.4
-    networks:
-      - relk
+      - /mpmetrics/grafana/:/var/lib/grafana
+ prometheus:
+    image: mp/prometheus
     ports:
-      - 5601:5601
-    depends_on:
-      - elasticsearch
-  logstash:
-    image: docker.elastic.co/logstash/logstash-oss:6.2.4
-    command: ["-e", "input { redis { host => \"redis\" port => 6379 key => \"logstash\" data_type => \"list\" codec => json } } output { elasticsearch { hosts => \"elasticsearch:9200\" } }"]
+     - 9090:9090
     networks:
-      - relk
-    deploy:
-      mode: replicated
-      replicas: 2
-    depends_on:
-      - elasticsearch
-      - redis
-  redis:
-    image: redis:4.0.9
-    ports:
-      - 6379:6379
-    networks:
-      - relk
-  nginx:
-    image: nginx:1.13.12
-    ports:
-      - 80:80
-      - 443:443
-    networks:
-      - relk
+     - graf
+    volumes:
+     - /mpmetrics/prometheus/:/prometheus/
 networks:
-  relk:
-volumes:
-  elasticsearch-data:
-  portainer-data:
+  graf:
+  
