@@ -52,4 +52,6 @@ services:
      - /mpmetrics/prometheus/:/prometheus/
 networks:
   graf:
-  
+volumes:
+  portainer-data:
+
