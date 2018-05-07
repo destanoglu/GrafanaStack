@@ -43,9 +43,11 @@ services:
     volumes:
       - /grafana/:/var/lib/grafana
  prometheus:
-    image: mp/prometheus
+    image: prom/prometheus:v2.2.0-rc.0
     ports:
      - 9090:9090
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
     networks:
      - graf
     volumes:
