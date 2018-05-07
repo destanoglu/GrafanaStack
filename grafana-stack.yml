@@ -41,7 +41,7 @@ services:
       - GF_SERVER_ROOT_URL=http://192.168.44.225
       - GF_INSTALL_PLUGINS=grafana-clock-panel,jdbranham-diagram-panel
     volumes:
-      - /mpmetrics/grafana/:/var/lib/grafana
+      - /grafana/:/var/lib/grafana
  prometheus:
     image: mp/prometheus
     ports:
@@ -49,7 +49,7 @@ services:
     networks:
      - graf
     volumes:
-     - /mpmetrics/prometheus/:/prometheus/
+     - /prometheus/:/prometheus/
 networks:
   graf:
 volumes:
