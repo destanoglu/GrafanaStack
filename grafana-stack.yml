@@ -1,0 +1,68 @@
+version: "3.6"
+services:
+  portainer:
+    image: portainer/portainer
+    ports:
+      - 4000:9000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    networks:
+      - relk
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4
+    environment:
+      - cluster.name=elasticsearch
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - discovery.zen.ping.unicast.hosts=elasticsearch
+      #- bootstrap.memory_lock=true
+    networks:
+      - relk
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    deploy:
+      endpoint_mode: dnsrr
+      resources:
+        limits:
+          memory: 4G
+      mode: global
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:6.2.4
+    networks:
+      - relk
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:6.2.4
+    command: ["-e", "input { redis { host => \"redis\" port => 6379 key => \"logstash\" data_type => \"list\" codec => json } } output { elasticsearch { hosts => \"elasticsearch:9200\" } }"]
+    networks:
+      - relk
+    deploy:
+      mode: replicated
+      replicas: 2
+    depends_on:
+      - elasticsearch
+      - redis
+  redis:
+    image: redis:4.0.9
+    ports:
+      - 6379:6379
+    networks:
+      - relk
+  nginx:
+    image: nginx:1.13.12
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - relk
+networks:
+  relk:
+volumes:
+  elasticsearch-data:
+  portainer-data:
